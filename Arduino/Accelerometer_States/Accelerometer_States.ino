@@ -47,9 +47,9 @@ int16_t gx, gy, gz;
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
 // not so easy to parse, and slow(er) over UART.
-//#define OUTPUT_READABLE_ACCELGYRO
+#define OUTPUT_READABLE_ACCELGYRO
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.print (x)
@@ -109,6 +109,7 @@ boolean glowing = false;
 uint32_t glowEnd = -1;
 const uint32_t glowDuration = 2500;
 
+boolean wasItLifted = false;
 
 
 void setup() {
@@ -154,6 +155,8 @@ void setup() {
             readings[axis][i] = 0;
         }
     }
+
+    
 }
 
 
@@ -181,9 +184,15 @@ void loop() {
     checkVertical();
     reportStates();
 
-    if(wasLifted()){
+    wasItLifted = wasLifted();
+    DEBUG_PRINT(wasItLifted);
+    if(wasItLifted){
         glowing = true;
     }
+    else{
+      glowing = false;
+    }
+    
 
     handleLights();
 }
@@ -191,7 +200,7 @@ void loop() {
 
 void checkFlat(){
     #ifdef USE_ACCEL
-    if( abs(average[AZ]) > 15000 && abs(average[AY]) < 5100 ){
+    if(abs(average[AY]) < 8100 && average[AZ] > 1000 ){ //abs(average[AZ]) > 1000 && abs(average[AX]) < -8001 ){
         if(!flat){
             flatStarted = millis();
         }
@@ -209,9 +218,10 @@ void checkFlat(){
 
 void checkVertical(){
     #ifdef USE_ACCEL
-    boolean AZ_in_range = abs(average[AZ]) < 8000;
-    boolean AX_in_range = abs(average[AX]) < 8000;
-    boolean AY_in_range = average[AY] < -13500;
+    boolean AX_in_range = average[AX] > -8000;
+    boolean AY_in_range = abs(average[AY]) > 1500;
+    boolean AZ_in_range = average[AZ] < 1001;
+    
     if( AZ_in_range && AX_in_range && AY_in_range ){
         if(!vertical){
             verticalStarted = millis();
@@ -282,7 +292,12 @@ void reportAcccelGyro(){
 
 
 boolean wasLifted(){
-    if(vertical && verticalDuration > 200 && millis() - flatLastEnded < 1000 && 250 < flatDuration && flatDuration < 2500 ){
+    if(vertical && 
+        verticalDuration > 50 && 
+        millis() - flatLastEnded < 1000 &&
+        flatDuration > 250  && 
+        flatDuration < 2500 
+        ){
         // Sword of Omens, Give Me Sight Beyond Sight!
         return true;
     }
@@ -293,16 +308,16 @@ boolean wasLifted(){
 
 void handleLights(){
     if(glowing){
+        
         DEBUG_PRINTLN("GLOWING!");
         if(glowEnd == -1)
             glowEnd = millis() + glowDuration;
 
         if(millis() > glowEnd)
             glowing = false;
-
+        
         // run glow function here
-
-        blinkState = !blinkState;
+        blinkState =  true;//!blinkState;
     }
     if(!glowing){
         // do some variable cleanup

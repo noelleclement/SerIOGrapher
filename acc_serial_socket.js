@@ -17,20 +17,26 @@ app.use('/', express.static('./public'))
 
 const optionDefinitions = [
   { name: 'list_ports', alias: 'l', type: Boolean },
-  { name: 'port_number', alias: 'p', type: Number, defaultValue: 3 }
+  { name: 'port_number', alias: 'p', type: String, defaultValue: '3' }
 ];
 const options = commandLineArgs(optionDefinitions);
 
 let portPrefix = ''
+
+
+
 if (process.platform === 'linux') {
   portPrefix = '/dev/ttyS'
 } else if (process.platform === 'win32') {
   portPrefix = 'COM'
 } else {
-  console.log('Currently only supports linux and windows, Sorry!')
-  console.log('Feel free to edit submit a PR for enumerating/reading serial ports on other systems')
-  process.exit()
+  
+  //console.log('Currently only supports linux and windows, Sorry!')
+  //console.log('Feel free to edit submit a PR for enumerating/reading serial ports on other systems')
+  //process.exit()
+  portPrefix = '/dev/cu.'
 }
+
 
 // console.log(JSON.stringify(options));
 
@@ -46,7 +52,7 @@ if( options.list_ports ) {
 
 } else {
 
-  port_number = parseInt(options.port_number, 10);
+  port_number = options.port_number//parseInt(options.port_number, 10);
 
   // console.log(JSON.stringify(port_number));
 
