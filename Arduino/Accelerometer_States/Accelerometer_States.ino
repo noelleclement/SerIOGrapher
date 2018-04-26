@@ -294,11 +294,10 @@ void reportAcccelGyro(){
 boolean wasLifted(){
     if(vertical && 
         verticalDuration > 50 && 
-        millis() - flatLastEnded < 1000 &&
+        //millis() - flatLastEnded < 1000 &&          //if you want the led to glow up for max 1 sec uncomment this
         flatDuration > 250  && 
         flatDuration < 2500 
         ){
-        // Sword of Omens, Give Me Sight Beyond Sight!
         return true;
     }
 
